@@ -6,6 +6,7 @@ const path = require('path');
 const url = require('url');
 const crypto = require('crypto');
 
+const PORT = process.env.PORT || 8080; // To support Heroku deployment, Env variable set by Heroku
 
 const server = http.createServer((request, response) => {
   if (request.url.startsWith('/api')) {
@@ -13,7 +14,7 @@ const server = http.createServer((request, response) => {
   } else {
     fileHandler(request, response);
   }
-}).listen(8080);
+}).listen(PORT);
 
 function apiHandler(request, response) {
   console.log("Got API request");
@@ -93,5 +94,9 @@ function fileHandler(request, response) {
 
 }
 
-console.log('Server running at http://127.0.0.1:8080/');
+if (process.env.PORT) {
+  console.log('Server running at heroku on port ' + PORT);
+} else {
+  console.log('Local server running at http://127.0.0.1:' + PORT + '/');
+}
 
