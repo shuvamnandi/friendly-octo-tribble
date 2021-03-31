@@ -1,0 +1,113 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>JavaPoly Tests</title>
+  <link href="mocha/mocha.css" rel="stylesheet" />
+  <link href="style.css" rel="stylesheet" />
+
+  <script type="text/javascript" src="build/javapoly.js"></script>
+  <script type="application/java" src="classes/Main.class"></script>
+  <script type="application/java" src="classes/EvalTest.class"></script>
+  <script type="application/java" src="classes/Counter.class"></script>
+  <script type="application/java" src="classes/Overload.class"></script>
+  <script type="application/java" src="classes/ShaTest.class"></script>
+  <script type="application/java" src="classes/URLConnectionTest.class"></script>
+  <script type="application/java" src="classes/com/javapoly/MainWithPackage.class"></script>
+  <script type="application/java" src="classes/com/javapoly/test/LongTest.class"></script>
+  <script type="application/java" src="jars/javapoly-utils.jar"></script>
+
+</head>
+<body>
+  <ul class="workerChoice">
+    <li class="browser"><a href='/'>Browser version</a></li>
+    <li class="worker"><a href='/?worker=build/javapoly_worker.js'>Web worker version</a></li>
+  </ul>
+
+  <div id="mocha"></div>
+
+  <script src="expect/umd/expect.min.js"></script>
+  <script src="mocha/mocha.js"></script>
+
+  <script src="units/util.js"></script>
+  <script src="units/proxy.js"></script>
+  <script src="units/objectWrappers.js"></script>
+  <script src="units/eval.js"></script>
+  <script src="units/reflect.js"></script>
+  <script src="units/stringIdAccess.js"></script>
+  <script src="units/dynamicAdd.js"></script>
+  <script src="units/exceptions.js"></script>
+  <script src="units/urls.js"></script>
+  <script src="units/jars.js"></script>
+  <script src="units/crypto.js"></script>
+
+  <script type="text/javascript">
+    mocha.setup('bdd');
+
+    expect.extend({
+      toBeGreaterThanOrEqual: function(limit) {
+        expect.assert(this.actual >= limit, 'expected %s to be greater than or equal to ' + limit, this.actual);
+        return this;
+      },
+      toStartWith : function(prefix) {
+        expect.assert(this.actual.startsWith(prefix), 'expected %s to start with ' + prefix, this.actual);
+        return this;
+      },
+      toEndWith : function(suffix) {
+        expect.assert(this.actual.endsWith(suffix), 'expected %s to end with ' + suffix, this.actual);
+        return this;
+      },
+      toNeverReachHere : function() {
+        expect.assert(false, 'never expected to reach here');
+        return this;
+      }
+    });
+
+    var params = getParams(window.location.search);
+    var isWorkerBased = !!params.worker; //!!defaultJavapoly.options.worker;
+    document.querySelector(".workerChoice " + (isWorkerBased ? ".worker" : ".browser")).classList.add("selected");
+    var titleSuffix = isWorkerBased ? " Web Worker" : " Browser";
+
+    var checkJavaPolyLoaded = function (done) {
+      if ( typeof defaultJavapoly !== 'undefined' ) {
+        done();
+      } else {
+        setTimeout(checkJavaPolyLoaded, 100, done);
+      }
+    }
+
+    // ensure the javapoly lib has been loaded, especially when async loading javapoly lib
+    before( function(done) {
+      checkJavaPolyLoaded(done);
+    });
+    
+    describe('JavaPoly' + titleSuffix, function() {
+      this.timeout(150000); // Let jvm to start and do not interrupt promises
+
+      testCrypto();
+
+      // testUrls();
+
+      testProxy();
+
+      testObjectWrappers();
+
+      testEval();
+
+      testReflect();
+
+      testStringIdAccess();
+
+      testExceptions();
+
+      testDynamicAdd();
+      
+      testJarFile();
+    });
+
+    // TODO: akadeev: checkLeaks() does not work for such complex promises tests
+    // There might be a way to fix it
+    //mocha.checkLeaks();
+    mocha.run();
+  </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>JavaPoly Tests: Java Source Files</title>
+  <link href="mocha/mocha.css" rel="stylesheet" />
+  <link href="style.css" rel="stylesheet" />
+
+  <script type="text/javascript" src="build/javapoly.js"></script>
+
+  <script type="text/java">
+  package com.javapoly.test;
+  public class TestCompile1 {
+      public static String testIt() {
+        return "TestCompile1::testIt()";
+      }
+  }
+  </script>
+
+  <script type="text/java">
+  package com.javapoly.test;
+  public class TestCompile2 {
+      public static Integer testIt() {
+        return 8008;
+      }
+  }
+  </script>
+
+  <script type="text/java">
+  // This class is not public and should not be parsed
+  class LocalClass { }
+
+  // Add generic to check parsing
+  public class TestProxyCreation<T> {
+      public static String testIt() {
+        return "Success";
+      }
+  }
+  </script>
+
+  <script type="text/java">
+  package jp.javapoly.sample;
+
+  public class TestProxyCreationForPackage {
+      public static String testIt() {
+        return "Success";
+      }
+  }
+  </script>
+
+  <script type="text/java">
+  import com.javapoly.dom.Window;
+
+  public class HelloWorld {
+    public static void sayHello() {
+      Window.alert("Hello World, from Java!");
+    }
+
+    public static double abs(double x) {
+      return com.javapoly.dom.Math.abs(x);
+    }
+  }
+  </script>
+
+</head>
+<body>
+  <ul class="workerChoice">
+    <li class="browser"><a href='/java_source_file.html'>Browser version</a></li>
+    <li class="worker"><a href='/java_source_file.html?worker=build/javapoly_worker.js'>Web worker version</a></li>
+  </ul>
+
+  <div id="mocha"></div>
+
+  <script src="expect/umd/expect.min.js"></script>
+  <script src="mocha/mocha.js"></script>
+
+  <script type="text/javascript">
+    mocha.setup('bdd');
+    expect.extend({
+      toBeGreaterThanOrEqual(limit) {
+        expect.assert(this.actual >= limit, 'expected %s to be greater than or equal to ' + limit, this.actual);
+      }
+    });
+
+    var isWorkerBased = !!defaultJavapoly.options.worker;
+    document.querySelector(".workerChoice " + (isWorkerBased ? ".worker" : ".browser")).classList.add("selected");
+    var titleSuffix = isWorkerBased ? " Web Worker" : " Browser";
+
+    describe('JavaPoly' + titleSuffix, function() {
+      this.timeout(1000000); // Let jvm to start and do not interrupt promises
+
+      var isProxySupported = (typeof Proxy !== 'undefined');
+
+      if (isProxySupported) {
+
+        if (!isWorkerBased) {
+          // window.alert() not available for web workers
+          describe('proxy creation for java source files ', function() {
+            it('HelloWorld.sayHello() does not throw exception', function() {
+              HelloWorld.sayHello();
+            });
+          });
+        }
+
+        describe('proxy creation for java source files: Math.abs', function() {
+          it('HelloWorld.abs() returns correct value', function() {
+            return HelloWorld.abs(-10).then(function(result) {
+              expect(result).toEqual(10);
+            });
+          });
+        });
+
+        describe('TestProxyCreation', function() {
+          it('Tests that custom root Proxy object works', function() {
+            return TestProxyCreation.testIt().then(function(result) {
+              expect(result).toEqual("Success");
+            });
+          });
+        });
+
+        describe('TestProxyCreationForPackage', function() {
+          it('Tests that custom root Proxy object for package works', function() {
+            return jp.javapoly.sample.TestProxyCreationForPackage.testIt().then(function(result) {
+              expect(result).toEqual("Success");
+            });
+          });
+        });
+      }
+
+      describe('TestCompile1', function() {
+        it('static method returns String', function() {
+          return JavaPoly.type('com.javapoly.test.TestCompile1').then(function(TestCompile1) {
+            return TestCompile1.testIt().then(function(result) {
+              expect(result).toEqual('TestCompile1::testIt()');
+            });
+          });
+        });
+      });
+
+      describe('TestCompile2', function() {
+        it('static method returns Integer', function() {
+          return JavaPoly.type('com.javapoly.test.TestCompile2').then(function(TestCompile2) {
+            return TestCompile2.testIt().then(function(result) {
+              expect(result).toEqual(8008);
+            });
+          });
+        });
+      });
+
+    });
+
+    mocha.run();
+  </script>
+</body>
+</html>
