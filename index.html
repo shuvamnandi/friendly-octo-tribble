@@ -15,6 +15,7 @@
   <script type="application/java" src="classes/com/javapoly/MainWithPackage.class"></script>
   <script type="application/java" src="classes/com/javapoly/test/LongTest.class"></script>
   <script type="application/java" src="jars/javapoly-utils.jar"></script>
+  <script type="application/java" src="jars/Renjin.jar"></script>
 
 </head>
 <body>
@@ -38,6 +39,7 @@
   <script src="units/exceptions.js"></script>
   <script src="units/urls.js"></script>
   <script src="units/jars.js"></script>
+  <script src="units/renjin.js"></script>
   <script src="units/crypto.js"></script>
 
   <script type="text/javascript">
@@ -83,6 +85,8 @@
     describe('JavaPoly' + titleSuffix, function() {
       this.timeout(150000); // Let jvm to start and do not interrupt promises
 
+      testRExecution();
+
       testCrypto();
 
       // testUrls();
@@ -104,9 +108,6 @@
       testJarFile();
     });
 
-    // TODO: akadeev: checkLeaks() does not work for such complex promises tests
-    // There might be a way to fix it
-    //mocha.checkLeaks();
     mocha.run();
   </script>
 </body>
